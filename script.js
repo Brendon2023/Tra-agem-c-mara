@@ -49,7 +49,7 @@ function gerarPrograma() {
     const peca = document.getElementById("peca").value;
     const cliente = document.getElementById("cliente").value;
     const linhas = document.querySelectorAll("#corpoTabela tr");
-   
+
 
     let programa = "";
 
@@ -71,15 +71,15 @@ function gerarPrograma() {
 
         const raio = linha.querySelector(".raio").value;
 
-        if(tipo === "G01"){
+        if (tipo === "G01") {
 
             programa +=
-            `N${numeroLinha} G01 X${x} Z${z}\n`;
+                `N${numeroLinha} G01 X${x} Z${z}\n`;
 
-        }else{
+        } else {
 
             programa +=
-            `N${numeroLinha} ${tipo} X${x} Z${z} CR=${raio}\n`;
+                `N${numeroLinha} ${tipo} X${x} Z${z} CR=${raio}\n`;
 
         }
 
@@ -103,41 +103,110 @@ function desenharPerfil() {
     const linhas =
         document.querySelectorAll("#corpoTabela tr");
 
-    if(linhas.length < 2){
+    if (linhas.length < 2) {
         return;
     }
 
-    ctx.beginPath();
+    const pontos = [];
 
-    linhas.forEach((linha, indice) => {
+    linhas.forEach(linha => {
 
-        const x =
-            parseFloat(
-                linha.querySelector(".x").value
-            );
+        const x = parseFloat(
+            linha.querySelector(".x").value
+        );
 
-        const z =
-            parseFloat(
-                linha.querySelector(".z").value
-            );
+        const z = parseFloat(
+            linha.querySelector(".z").value
+        );
 
-        if(isNaN(x) || isNaN(z)){
-            return;
+        if (!isNaN(x) && !isNaN(z)) {
+
+            pontos.push({
+                x: x,
+                z: z
+            });
+
         }
 
-        const escala = 2;
+    });
+    // ===== MAIOR E MENOR =====
 
-        const posX = 100 + (-z * escala);
+    const maiorX =
+        Math.max(...pontos.map(p => p.x));
 
-        const posY = 350 - (x * escala);
+    const menorX =
+        Math.min(...pontos.map(p => p.x));
 
-        if(indice === 0){
+    const maiorZ =
+        Math.max(...pontos.map(p => p.z));
+
+    const menorZ =
+        Math.min(...pontos.map(p => p.z));
+
+    // ===== ESCALA AUTOMÁTICA =====
+
+    const larguraUtil = 700;
+    const alturaUtil = 300;
+
+    const escalaX =
+        larguraUtil /
+        (maiorZ - menorZ || 1);
+
+    const escalaY =
+        alturaUtil /
+        (maiorX - menorX || 1);
+
+    const escala =
+        Math.min(
+            escalaX,
+            escalaY
+        );
+
+    // ===== DESENHO =====
+
+
+    ctx.beginPath();
+
+    ctx.lineWidth = 2;
+
+
+    pontos.forEach((ponto, indice) => {
+
+        const posX =
+            50 + (ponto.x - menorX) * escala;
+
+        const posY =
+            350 - (ponto.z - menorZ) * escala;
+
+        if (indice === 0) {
+
             ctx.moveTo(posX, posY);
-        }else{
+
+        } else {
+
             ctx.lineTo(posX, posY);
+
         }
 
     });
 
     ctx.stroke();
 }
+ctx.fillStyle = "red";
+ctx.font = "12px Arial";
+
+pontos.forEach((ponto, indice) => {
+
+    const posX =
+    50 + (ponto.x - menorX) * escala;
+
+    const posY =
+    350 - (ponto.z - menorZ) * escala;
+
+    ctx.fillText(
+        "P" + (indice + 1),
+        posX + 5,
+        posY - 5
+    );
+
+});
