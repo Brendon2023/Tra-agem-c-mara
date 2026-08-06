@@ -46,17 +46,18 @@ function removerLinha() {
 function gerarPrograma() {
 
     const desenho = document.getElementById("desenho").value;
-
     const peca = document.getElementById("peca").value;
-
-    const classe = document.getElementById("classe").value;
-
+    const cliente = document.getElementById("cliente").value;
     const linhas = document.querySelectorAll("#corpoTabela tr");
+   
 
     let programa = "";
 
     programa += `; DESENHO: ${desenho}\n`;
     programa += `; PECA: ${peca}\n`;
+    programa += `; CLIENTE: ${cliente}\n`;
+
+
 
     let numeroLinha = 100;
 
@@ -87,4 +88,56 @@ function gerarPrograma() {
     });
 
     document.getElementById("saida").value = programa;
+    desenharPerfil();
+}
+
+
+function desenharPerfil() {
+
+    const canvas = document.getElementById("canvasPerfil");
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const linhas =
+        document.querySelectorAll("#corpoTabela tr");
+
+    if(linhas.length < 2){
+        return;
+    }
+
+    ctx.beginPath();
+
+    linhas.forEach((linha, indice) => {
+
+        const x =
+            parseFloat(
+                linha.querySelector(".x").value
+            );
+
+        const z =
+            parseFloat(
+                linha.querySelector(".z").value
+            );
+
+        if(isNaN(x) || isNaN(z)){
+            return;
+        }
+
+        const escala = 2;
+
+        const posX = 100 + (-z * escala);
+
+        const posY = 350 - (x * escala);
+
+        if(indice === 0){
+            ctx.moveTo(posX, posY);
+        }else{
+            ctx.lineTo(posX, posY);
+        }
+
+    });
+
+    ctx.stroke();
 }

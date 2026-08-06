@@ -18,6 +18,10 @@
         <label>Peça:</label>
         <input type="text" id="peca">
 
+        <label>Cliente:</label>
+        <input type="text" id="cliente">
+
+
     </div>
 
     <table id="tabela">
@@ -26,7 +30,7 @@
                 <th>Ponto</th>
                 <th>X</th>
                 <th>Z</th>
-                  <th>Tipo</th>
+                <th>Tipo</th>
                 <th>Raio</th>
             </tr>
         </thead>
@@ -43,6 +47,14 @@
     <button onclick="gerarPrograma()">
         Gerar CNC
     </button>
+
+    <h2>Perfil da Câmara</h2>
+
+    <canvas id="canvasPerfil" 
+    width="800" 
+    height="400">
+    </canvas>
+
     <h2>Programa Gerado</h2>
 
     <textarea id="saida" rows="20"></textarea>
