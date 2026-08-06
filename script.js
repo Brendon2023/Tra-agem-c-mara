@@ -49,6 +49,9 @@ function gerarPrograma() {
     const peca = document.getElementById("peca").value;
     const cliente = document.getElementById("cliente").value;
     const linhas = document.querySelectorAll("#corpoTabela tr");
+    localStorage.setItem("desenho", desenho);
+    localStorage.setItem("peca", peca);
+    localStorage.setItem("cliente", cliente);
 
 
     let programa = "";
@@ -173,10 +176,8 @@ function desenharPerfil() {
     pontos.forEach((ponto, indice) => {
 
         const posX =
-            50 + (ponto.x - menorX) * escala;
-
-        const posY =
-            350 - (ponto.z - menorZ) * escala;
+            canvas.width - 50 -
+            ((ponto.x - menorX) * escala);
 
         if (indice === 0) {
 
@@ -191,22 +192,140 @@ function desenharPerfil() {
     });
 
     ctx.stroke();
+    ctx.fillStyle = "red";
+    ctx.font = "12px Arial";
+
+    pontos.forEach((ponto, indice) => {
+
+        const posX =
+            canvas.width - 50 -
+            ((ponto.x - menorX) * escala);
+
+        ctx.fillText(
+            "P" + (indice + 1),
+            posX + 5,
+            posY - 5
+
+        );
+
+    });
 }
-ctx.fillStyle = "red";
-ctx.font = "12px Arial";
 
-pontos.forEach((ponto, indice) => {
+//Salvar Projeto
+function salvarProjeto() {
 
-    const posX =
-    50 + (ponto.x - menorX) * escala;
+    const linhas =
+        document.querySelectorAll("#corpoTabela tr");
 
-    const posY =
-    350 - (ponto.z - menorZ) * escala;
+    const dados = [];
 
-    ctx.fillText(
-        "P" + (indice + 1),
-        posX + 5,
-        posY - 5
+    linhas.forEach(linha => {
+
+        dados.push({
+
+            x:
+                linha.querySelector(".x").value,
+
+            z:
+                linha.querySelector(".z").value,
+
+            tipo:
+                linha.querySelector(".tipo").value,
+
+            raio:
+                linha.querySelector(".raio").value
+
+        });
+
+    });
+
+    const projeto = {
+
+        desenho:
+            document.getElementById("desenho").value,
+
+        peca:
+            document.getElementById("peca").value,
+
+        cliente:
+            document.getElementById("cliente").value,
+
+        pontos: dados
+
+    };
+
+    localStorage.setItem(
+        "projetoCamara",
+        JSON.stringify(projeto)
     );
 
-});
+
+    alert(
+        "Projeto salvo com sucesso!"
+    );
+
+}
+//Carregar Projeto
+function carregarProjeto() {
+
+    const dados =
+        JSON.parse(
+            localStorage.getItem(
+                "projetoCamara"
+            )
+        );
+
+    if (!dados) {
+
+        alert(
+            "Nenhum projeto salvo."
+        );
+
+        return;
+
+    }
+
+    document.getElementById(
+        "corpoTabela"
+    ).innerHTML = "";
+
+    dados.forEach(item => {
+
+        adicionarLinha();
+
+        const ultimaLinha =
+            document.querySelector(
+                "#corpoTabela tr:last-child"
+            );
+
+        ultimaLinha.querySelector(".x")
+            .value = item.x;
+
+        ultimaLinha.querySelector(".z")
+            .value = item.z;
+
+        ultimaLinha.querySelector(".tipo")
+            .value = item.tipo;
+
+        ultimaLinha.querySelector(".raio")
+            .value = item.raio;
+
+    });
+
+    alert(
+        "Projeto carregado!"
+    );
+
+}
+window.onload = function () {
+
+    document.getElementById("desenho").value =
+        localStorage.getItem("desenho") || "";
+
+    document.getElementById("peca").value =
+        localStorage.getItem("peca") || "";
+
+    document.getElementById("cliente").value =
+        localStorage.getItem("cliente") || "";
+
+};
