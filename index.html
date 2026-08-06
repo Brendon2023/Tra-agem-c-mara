@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador TDU500</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Gerador TDU500</h1>
+    <div class="dadosPeca">
+
+        <label>Desenho:</label>
+        <input type="text" id="desenho">
+
+        <label>Peça:</label>
+        <input type="text" id="peca">
+
+    </div>
+
+    <table id="tabela">
+        <thead>
+            <tr>
+                <th>Ponto</th>
+                <th>X</th>
+                <th>Z</th>
+                  <th>Tipo</th>
+                <th>Raio</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabela">
+        </tbody>
+    </table>
+
+    <button onclick="adicionarLinha()">Adicionar Linha</button>
+
+    <button onclick="removerLinha()">
+        Remover Última Linha
+    </button>
+
+    <button onclick="gerarPrograma()">
+        Gerar CNC
+    </button>
+    <h2>Programa Gerado</h2>
+
+    <textarea id="saida" rows="20"></textarea>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
