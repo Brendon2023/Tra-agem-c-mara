@@ -49,11 +49,7 @@ function gerarPrograma() {
     const peca = document.getElementById("peca").value;
     const cliente = document.getElementById("cliente").value;
     const linhas = document.querySelectorAll("#corpoTabela tr");
-    localStorage.setItem("desenho", desenho);
-    localStorage.setItem("peca", peca);
-    localStorage.setItem("cliente", cliente);
-
-
+   
     let programa = "";
 
     programa += `; DESENHO: ${desenho}\n`;
@@ -179,6 +175,9 @@ function desenharPerfil() {
             canvas.width - 50 -
             ((ponto.x - menorX) * escala);
 
+        const posY =
+            350 - ((ponto.z - menorZ) * escala);
+
         if (indice === 0) {
 
             ctx.moveTo(posX, posY);
@@ -200,6 +199,9 @@ function desenharPerfil() {
         const posX =
             canvas.width - 50 -
             ((ponto.x - menorX) * escala);
+
+        const posY =
+            350 - ((ponto.z - menorZ) * escala);
 
         ctx.fillText(
             "P" + (indice + 1),
@@ -268,14 +270,14 @@ function salvarProjeto() {
 //Carregar Projeto
 function carregarProjeto() {
 
-    const dados =
+    const projeto =
         JSON.parse(
             localStorage.getItem(
                 "projetoCamara"
             )
         );
 
-    if (!dados) {
+    if (!projeto) {
 
         alert(
             "Nenhum projeto salvo."
@@ -289,7 +291,16 @@ function carregarProjeto() {
         "corpoTabela"
     ).innerHTML = "";
 
-    dados.forEach(item => {
+    document.getElementById("desenho").value =
+        projeto.desenho || "";
+
+    document.getElementById("peca").value =
+        projeto.peca || "";
+
+    document.getElementById("cliente").value =
+        projeto.cliente || "";
+
+    projeto.pontos.forEach(item => {
 
         adicionarLinha();
 
@@ -318,14 +329,8 @@ function carregarProjeto() {
 
 }
 window.onload = function () {
+    document.getElementById("corpoTabela").innerHTML = "";
+        
 
-    document.getElementById("desenho").value =
-        localStorage.getItem("desenho") || "";
 
-    document.getElementById("peca").value =
-        localStorage.getItem("peca") || "";
-
-    document.getElementById("cliente").value =
-        localStorage.getItem("cliente") || "";
-
-};
+}
