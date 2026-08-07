@@ -91,125 +91,117 @@ function gerarPrograma() {
 }
 
 
-function desenharPerfil() {
 
+function desenharPerfil() {
     const canvas = document.getElementById("canvasPerfil");
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const linhas =
-        document.querySelectorAll("#corpoTabela tr");
-
-    if (linhas.length < 2) {
-        return;
-    }
+    const linhas = document.querySelectorAll("#corpoTabela tr");
+    if (linhas.length < 2) return;
 
     const pontos = [];
 
-    linhas.forEach(linha => {
+    // 1. LEITURA DOS DADOS DA TABELA
+    linhas.forEach((linha, index) => {
+        const inputX = linha.querySelector(".x")?.value || "0";
+        const inputZ = linha.querySelector(".z")?.value || "0";
+        const inputRaio = linha.querySelector(".raio")?.value || "0";
 
-        const x = parseFloat(
-            linha.querySelector(".x").value
-        );
-
-        const z = parseFloat(
-            linha.querySelector(".z").value
-        );
+        const x = parseFloat(inputX.toString().replace(",", "."));
+        const z = parseFloat(inputZ.toString().replace(",", "."));
+        const raio = parseFloat(inputRaio.toString().replace(",", ".")) || 0;
 
         if (!isNaN(x) && !isNaN(z)) {
-
             pontos.push({
+                nome: "P" + (index + 1),
                 x: x,
-                z: z
+                z: z,
+                raio: raio
             });
-
         }
-
     });
-    // ===== MAIOR E MENOR =====
 
-    const maiorX =
-        Math.max(...pontos.map(p => p.x));
+    if (pontos.length < 2) return;
 
-    const menorX =
-        Math.min(...pontos.map(p => p.x));
+    // 2. EXTREMOS PARA ESCALA
+    const minX = Math.min(...pontos.map(p => p.x));
+    const maxX = Math.max(...pontos.map(p => p.x));
+    const minZ = Math.min(...pontos.map(p => p.z));
+    const maxZ = Math.max(...pontos.map(p => p.z));
 
-    const maiorZ =
-        Math.max(...pontos.map(p => p.z));
+    const deltaX = (maxX - minX) || 1;
+    const deltaZ = (maxZ - minZ) || 1;
 
-    const menorZ =
-        Math.min(...pontos.map(p => p.z));
+    // Margens e área útil
+    const padding = 60;
+    const larguraUtil = canvas.width - (padding * 2);
+    const alturaUtil = canvas.height - (padding * 2);
 
-    // ===== ESCALA AUTOMÁTICA =====
+    // Escala uniforme para não deformar a peça
+    const escala = Math.min(larguraUtil / deltaZ, alturaUtil / deltaX);
 
-    const larguraUtil = 700;
-    const alturaUtil = 300;
+    // Centralização da figura no Canvas
+    const offsetX = padding + (larguraUtil - (deltaZ * escala)) / 2;
+    const offsetY = padding + (alturaUtil - (deltaX * escala)) / 2;
 
-    const escalaX =
-        larguraUtil /
-        (maiorZ - menorZ || 1);
+    // 3. MAPEAMENTO DE ORIENTAÇÃO (DEITADO)
+    // Z determina a posição da esquerda para a direita (Horizontal)
+    // X determina a altura (Vertical: Maior X em cima, menor X no fundo)
+    function paraPixels(p) {
+        return {
+            x: offsetX + ((p.z - minZ) * escala),  // P1 (Z=0) na esquerda -> Z negativo/positivo avança à direita
+            y: offsetY + ((maxX - p.x) * escala)    // Diâmetros maiores no topo, menores no fundo
+        };
+    }
 
-    const escalaY =
-        alturaUtil /
-        (maiorX - menorX || 1);
-
-    const escala =
-        Math.min(
-            escalaX,
-            escalaY
-        );
-
-    // ===== DESENHO =====
-
-
+    // 4. DESENHO COM CURVATURAS EXPLICITAS E SUAVES
     ctx.beginPath();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#000000";
 
-    ctx.lineWidth = 2;
+    const pInicio = paraPixels(pontos[0]);
+    ctx.moveTo(pInicio.x, pInicio.y);
 
+    for (let i = 0; i < pontos.length - 1; i++) {
+        const pAtual = paraPixels(pontos[i]);
+        const pProximo = paraPixels(pontos[i + 1]);
+        const raioValor = pontos[i + 1].raio;
 
-    pontos.forEach((ponto, indice) => {
+        if (raioValor > 0 && i < pontos.length - 2) {
+            const pFuturo = paraPixels(pontos[i + 2]);
+            
+            // Multiplicador visual para dar mais curvatura e destaque aos arcos (R0.6, R2.0, R2.4, R6.6)
+            const raioPixels = Math.max(raioValor * escala * 1.2, 4);
 
-        const posX =
-            canvas.width - 50 -
-            ((ponto.x - menorX) * escala);
-
-        const posY =
-            350 - ((ponto.z - menorZ) * escala);
-
-        if (indice === 0) {
-
-            ctx.moveTo(posX, posY);
-
+            ctx.lineTo(pAtual.x, pAtual.y);
+            ctx.arcTo(pProximo.x, pProximo.y, pFuturo.x, pFuturo.y, raioPixels);
         } else {
-
-            ctx.lineTo(posX, posY);
-
+            ctx.lineTo(pProximo.x, pProximo.y);
         }
+    }
 
-    });
-
+    const pFim = paraPixels(pontos[pontos.length - 1]);
+    ctx.lineTo(pFim.x, pFim.y);
     ctx.stroke();
-    ctx.fillStyle = "red";
-    ctx.font = "12px Arial";
 
-    pontos.forEach((ponto, indice) => {
+    // 5. MARCADORES E NOMES DOS PONTOS (P1..P11)
+    ctx.font = "bold 12px Arial";
 
-        const posX =
-            canvas.width - 50 -
-            ((ponto.x - menorX) * escala);
+    pontos.forEach((p) => {
+        const pos = paraPixels(p);
 
-        const posY =
-            350 - ((ponto.z - menorZ) * escala);
+        // Ponto em vermelho
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 3.5, 0, 2 * Math.PI);
+        ctx.fill();
 
-        ctx.fillText(
-            "P" + (indice + 1),
-            posX + 5,
-            posY - 5
-
-        );
-
+        // Rótulo do Ponto
+        ctx.fillStyle = "red";
+        ctx.fillText(p.nome, pos.x - 8, pos.y - 10);
     });
 }
 
