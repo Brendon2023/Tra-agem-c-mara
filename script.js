@@ -49,7 +49,7 @@ function gerarPrograma() {
     const peca = document.getElementById("peca").value;
     const cliente = document.getElementById("cliente").value;
     const linhas = document.querySelectorAll("#corpoTabela tr");
-   
+
     let programa = "";
 
     programa += `; DESENHO: ${desenho}\n`;
@@ -256,10 +256,21 @@ function salvarProjeto() {
 
     };
 
+    const nomeProjeto =
+        document.getElementById("nomeProjeto").value;
+
     localStorage.setItem(
-        "projetoCamara",
+        nomeProjeto,
         JSON.stringify(projeto)
     );
+
+    if (nomeProjeto === "") {
+
+        alert("Digite um nome para o projeto");
+
+        return;
+
+    }
 
 
     alert(
@@ -267,70 +278,100 @@ function salvarProjeto() {
     );
 
 }
-//Carregar Projeto
+// Carregar Projeto
 function carregarProjeto() {
+    const nomeProjeto = document.getElementById("listaProjetos").value;
 
-    const projeto =
-        JSON.parse(
-            localStorage.getItem(
-                "projetoCamara"
-            )
-        );
-
-    if (!projeto) {
-
-        alert(
-            "Nenhum projeto salvo."
-        );
-
+    if (!nomeProjeto) {
+        alert("Por favor, selecione um projeto.");
         return;
-
     }
 
-    document.getElementById(
-        "corpoTabela"
-    ).innerHTML = "";
+    const dadoSalvo = localStorage.getItem(nomeProjeto);
 
-    document.getElementById("desenho").value =
-        projeto.desenho || "";
+    if (!dadoSalvo) {
+        alert("Nenhum projeto salvo com esse nome.");
+        return;
+    }
 
-    document.getElementById("peca").value =
-        projeto.peca || "";
+    let projeto;
+    try {
+        projeto = JSON.parse(dadoSalvo);
+    } catch (e) {
+        alert("O item selecionado não é um projeto válido.");
+        console.error("Erro ao converter JSON:", e);
+        return;
+    }
 
-    document.getElementById("cliente").value =
-        projeto.cliente || "";
+    // Verifica se é um objeto válido
+    if (typeof projeto !== "object" || projeto === null) {
+        alert("Formato de projeto inválido.");
+        return;
+    }
 
-    projeto.pontos.forEach(item => {
+    // 1. Limpa o corpo da tabela
+    const corpoTabela = document.getElementById("corpoTabela");
+    if (corpoTabela) {
+        corpoTabela.innerHTML = "";
+    }
 
-        adicionarLinha();
+    // 2. Preenche os campos do cabeçalho
+    document.getElementById("desenho").value = projeto.desenho || "";
+    document.getElementById("peca").value = projeto.peca || "";
+    document.getElementById("cliente").value = projeto.cliente || "";
 
-        const ultimaLinha =
-            document.querySelector(
-                "#corpoTabela tr:last-child"
-            );
+    // 3. Preenche a tabela com a lista de pontos (usando sua função adicionarLinha)
+    if (Array.isArray(projeto.pontos)) {
+        projeto.pontos.forEach(item => {
+            // Cria a linha HTML padrão da sua aplicação
+            if (typeof adicionarLinha === "function") {
+                adicionarLinha();
+            }
 
-        ultimaLinha.querySelector(".x")
-            .value = item.x;
+            // Pega a linha que acabou de ser criada
+            const ultimaLinha = document.querySelector("#corpoTabela tr:last-child");
 
-        ultimaLinha.querySelector(".z")
-            .value = item.z;
+            if (ultimaLinha) {
+                const inputX = ultimaLinha.querySelector(".x");
+                const inputZ = ultimaLinha.querySelector(".z");
+                const inputTipo = ultimaLinha.querySelector(".tipo");
+                const inputRaio = ultimaLinha.querySelector(".raio");
 
-        ultimaLinha.querySelector(".tipo")
-            .value = item.tipo;
+                if (inputX) inputX.value = item.x || "";
+                if (inputZ) inputZ.value = item.z || "";
+                if (inputTipo) inputTipo.value = item.tipo || "";
+                if (inputRaio) inputRaio.value = item.raio || "";
+            }
+        });
+    }
 
-        ultimaLinha.querySelector(".raio")
-            .value = item.raio;
-
-    });
-
-    alert(
-        "Projeto carregado!"
-    );
-
+    alert("Projeto carregado!");
 }
+
+// Executa ao carregar a janela
 window.onload = function () {
-    document.getElementById("corpoTabela").innerHTML = "";
-        
+    atualizarListaProjetos();
+};
 
+// Atualizar Lista de Projetos
+function atualizarListaProjetos() {
+    const select = document.getElementById("listaProjetos");
+    if (!select) return;
 
+    select.innerHTML = '<option value="">Selecione um projeto...</option>';
+
+    // Chaves que NÃO são projetos completos e devem ser ignoradas
+    const chavesIgnoradas = ["peca", "cliente", "desenho"];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const chave = localStorage.key(i);
+
+        // Só adiciona ao select se não for uma chave individual simples
+        if (!chavesIgnoradas.includes(chave)) {
+            const option = document.createElement("option");
+            option.value = chave;
+            option.textContent = chave;
+            select.appendChild(option);
+        }
+    }
 }
