@@ -5,11 +5,26 @@
     <meta charset="UTF-8">
     <title>Gerador TDU500</title>
     <link rel="stylesheet" href="style.css">
+
+    <!-- Dependências para OCR e Leitura de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 
 <body>
 
     <h1>Gerador TDU500</h1>
+
+    <!-- ÁREA DE IMPORTAÇÃO DE PDF/IMAGEM -->
+    <div style="background: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Importar Documento de Traçagem (PDF/Imagem)</h3>
+        <input type="file" id="pdfFileInput" accept="application/pdf, image/*">
+        <div id="statusOCR" style="margin-top: 10px; font-weight: bold; color: #0056b3;"></div>
+    </div>
+
+    <!-- Canvas oculto usado pelo PDF.js para renderizar as páginas -->
+    <canvas id="pdfCanvas" style="display: none;"></canvas>
+
     <div class="dadosPeca">
 
         <label>Desenho:</label>
@@ -20,13 +35,12 @@
 
         <label>Cliente:</label>
         <input type="text" id="cliente">
-        <label>Nome do Projeto:</label>
 
+        <label>Nome do Projeto:</label>
         <input type="text" id="nomeProjeto">
 
         <select id="listaProjetos">
         </select>
-
 
     </div>
 
@@ -44,31 +58,15 @@
         </tbody>
     </table>
 
-
     <button onclick="adicionarLinha()">Adicionar Linha</button>
+    <button onclick="removerLinha()">Remover Última Linha</button>
+    <button onclick="gerarPrograma()">Gerar CNC</button>
+    <button onclick="salvarProjeto()">Salvar Projeto</button>
+    <button onclick="carregarProjeto()">Carregar Projeto</button>
 
-    <button onclick="removerLinha()">
-        Remover Última Linha
-    </button>
-
-    <button onclick="gerarPrograma()">
-        Gerar CNC
-    </button>
-    <button onclick="salvarProjeto()">
-        Salvar Projeto
-    </button>
-
-    <button onclick="carregarProjeto()">
-        Carregar Projeto
-    </button>
-
-    <h2>Perfil da Câmara</h2>
-
-    <canvas id="canvasPerfil" width="800" height="400">
-    </canvas>
+    <canvas id="canvasPerfil" width="800" height="400"></canvas>
 
     <h2>Programa Gerado</h2>
-
     <textarea id="saida" rows="20"></textarea>
 
     <script src="script.js"></script>
